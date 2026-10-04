@@ -1,0 +1,161 @@
+#!/usr/bin/env python3
+"""Generates the public legal pages for VORA (Terms of Use, Privacy Policy, support) in en/pt/fr/es. Run: python3 build.py"""
+import pathlib, html
+
+OWNER = "robsonraulsm-tech"
+SITE = f"https://{OWNER}.github.io/vora-legal"
+ISSUES = f"https://github.com/{OWNER}/vora-legal/issues"
+UPDATED = {"en": "Last updated: October 4, 2026", "pt": "Última atualização: 4 de outubro de 2026", "fr": "Dernière mise à jour : 4 octobre 2026", "es": "Última actualización: 4 de octubre de 2026"}
+LANGS = {"en": "English", "pt": "Português", "fr": "Français", "es": "Español"}
+
+CSS = """
+:root{color-scheme:dark light;--bg:#050816;--card:#101a3e;--fg:#f4f6ff;--mut:#a3afd0;--acc:#8fa6ff}
+@media(prefers-color-scheme:light){:root{--bg:#f5f6ff;--card:#fff;--fg:#0b1030;--mut:#4a5578;--acc:#3d55f0}}
+*{box-sizing:border-box}body{margin:0;background:var(--bg);color:var(--fg);font:17px/1.6 -apple-system,BlinkMacSystemFont,"Segoe UI",Roboto,sans-serif}
+main{max-width:720px;margin:0 auto;padding:32px 20px 64px}h1{font-size:2rem;line-height:1.2;margin:.2em 0}h2{font-size:1.2rem;margin:1.8em 0 .4em}
+p,li{color:var(--fg)}.mut{color:var(--mut);font-size:.9rem}a{color:var(--acc)}nav{display:flex;gap:12px;flex-wrap:wrap;margin:8px 0 24px}
+nav a{padding:6px 12px;border-radius:999px;background:var(--card);text-decoration:none;font-size:.9rem}nav a.on{outline:2px solid var(--acc)}
+.card{background:var(--card);border-radius:18px;padding:18px 20px;margin:12px 0}ul{padding-left:1.2em}
+"""
+
+def page(title, lang, body, nav_links):
+    nav = "".join(f'<a class="{"on" if l==lang else ""}" href="{href}">{html.escape(name)}</a>' for l, name, href in nav_links)
+    return f"""<!doctype html><html lang="{lang}"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1">
+<title>{html.escape(title)}</title><style>{CSS}</style></head><body><main><nav>{nav}</nav>{body}</main></body></html>"""
+
+def sections(items):
+    return "".join(f"<h2>{html.escape(h)}</h2>{b}" for h, b in items)
+
+def ul(*lis): return "<ul>" + "".join(f"<li>{x}</li>" for x in lis) + "</ul>"
+
+PRIVACY = {
+"en": ("VORA — Privacy Policy", "VORA does its work on your phone. This policy explains, in plain words, what that means.", [
+ ("In short", ul("We do not collect your data. There is no account, no sign-in, no analytics, no advertising and no tracking.", "Your screenshots, photos, the text read from them and everything VORA derives stay on your device.", "We have no servers that receive your content.")),
+ ("What VORA processes on your device", "<p>When you allow access to Photos, VORA reads your screenshots (or the photos you choose) <b>on the device</b> to recognise text, dates, amounts and other details, and to remind you when something becomes relevant. It stores, inside the app: the recognised text, small thumbnails, the details it extracted, and—only for items you add or choose to keep—a copy of the picture. Optional on-device language features (Apple Intelligence) run locally and only when your device supports them.</p>"),
+ ("Photos", "<p>VORA only reads the library. It deletes a photo from your library only when you explicitly choose “Delete from Photos” or “Delete from the app and from Photos”, and iOS asks you to confirm. Deleted photos go to “Recently Deleted” in Photos for 30 days, as usual in iOS.</p>"),
+ ("Notifications and Face ID", "<p>Reminders are local notifications created only after you accept them; they are scheduled on your phone. The optional lock uses Face ID / your passcode through iOS; VORA never receives or stores biometric data.</p>"),
+ ("Links you add", "<p>If you paste a link, your phone contacts that website directly (through Apple’s LinkPresentation) to fetch its title and picture. The site may see your IP address and device information like in any visit; nothing goes through our servers. When you tap “Watch” or “Open link”, the page opens in Apple’s Safari view inside the app and that website’s own policies apply (including cookies and consent notices, which are yours to answer).</p>"),
+ ("Purchases", "<p>Subscriptions are processed by Apple. We do not receive your payment details, name or Apple Account; the app only learns, through StoreKit on your device, whether a subscription is active.</p>"),
+ ("Backups", "<p>“Back up my memories” creates a file that you save where you choose (for example iCloud Drive). VORA does not upload it anywhere. The file is not encrypted by VORA; it is protected by whatever protects the place where you save it. Like other apps, the app’s data on your phone may be included in your own iOS / iCloud device backups according to your iOS settings.</p>"),
+ ("Retention and deletion", "<p>Your data stays on your device until you delete an item, choose “Delete everything” in Settings, or uninstall the app. We cannot access or delete it for you because we never receive it.</p>"),
+ ("Children", "<p>VORA is not directed at children and does not knowingly collect any personal data from anyone.</p>"),
+ ("Your rights", "<p>Because we do not collect or hold your personal data, there is nothing for us to access, correct or erase on our side. If you have any question or request about privacy (for example under GDPR or LGPD), contact us through the support page below.</p>"),
+ ("Changes", "<p>If this policy changes, the new version will be published at this address with a new date.</p>"),
+ ("Contact", f'<p>Support and privacy questions: <a href="{ISSUES}">{ISSUES}</a></p>'),
+]),
+"pt": ("VORA — Política de Privacidade", "O VORA faz o trabalho dele no seu telefone. Esta política explica, em palavras simples, o que isso significa.", [
+ ("Resumo", ul("Nós não coletamos os seus dados. Não há conta, login, análise de uso, publicidade nem rastreamento.", "Seus screenshots, fotos, o texto lido deles e tudo o que o VORA extrai ficam no seu aparelho.", "Não temos servidores que recebam o seu conteúdo.")),
+ ("O que o VORA processa no seu aparelho", "<p>Quando você permite o acesso às Fotos, o VORA lê seus screenshots (ou as fotos que você escolher) <b>no próprio aparelho</b> para reconhecer textos, datas, valores e outros detalhes, e para lembrar você quando algo voltar a ser relevante. Dentro do app ficam guardados: o texto reconhecido, miniaturas, os detalhes extraídos e — somente para itens que você adiciona ou decide manter — uma cópia da imagem. Recursos opcionais de linguagem no aparelho (Apple Intelligence) rodam localmente e somente se o seu aparelho oferecer suporte.</p>"),
+ ("Fotos", "<p>O VORA apenas lê a biblioteca. Ele só apaga uma foto da sua biblioteca quando você escolhe explicitamente “Apagar das Fotos” ou “Apagar do aplicativo e das Fotos”, e o iOS pede a sua confirmação. As fotos apagadas ficam 30 dias em “Apagados Recentemente” no app Fotos, como é normal no iOS.</p>"),
+ ("Notificações e Face ID", "<p>Os lembretes são notificações locais, criadas somente depois que você aceita, e agendadas no seu telefone. O bloqueio opcional usa o Face ID / código do iOS; o VORA nunca recebe nem guarda dados biométricos.</p>"),
+ ("Links que você adiciona", "<p>Se você colar um link, o seu telefone fala diretamente com esse site (pelo LinkPresentation da Apple) para buscar título e imagem. O site pode ver o seu endereço IP e dados do aparelho, como em qualquer visita; nada passa pelos nossos servidores. Ao tocar em “Assistir” ou “Abrir link”, a página abre no Safari da Apple dentro do app e valem as políticas do próprio site (inclusive cookies e avisos de consentimento, que são você quem responde).</p>"),
+ ("Compras", "<p>As assinaturas são processadas pela Apple. Não recebemos seus dados de pagamento, nome ou Conta Apple; o app apenas descobre, pelo StoreKit no seu aparelho, se existe uma assinatura ativa.</p>"),
+ ("Backups", "<p>“Fazer backup das minhas memórias” cria um arquivo que você salva onde quiser (por exemplo, iCloud Drive). O VORA não o envia a lugar nenhum. O arquivo não é criptografado pelo VORA; ele é protegido por aquilo que protege o lugar onde você o salvar. Como em outros apps, os dados do app no seu telefone podem entrar nos backups do iOS / iCloud do próprio aparelho, conforme os seus ajustes do iOS.</p>"),
+ ("Retenção e exclusão", "<p>Os dados ficam no seu aparelho até você apagar um item, escolher “Apagar tudo” em Ajustes ou desinstalar o app. Não conseguimos acessá-los nem apagá-los por você, porque nunca os recebemos.</p>"),
+ ("Crianças", "<p>O VORA não é dirigido a crianças e não coleta conscientemente dados pessoais de ninguém.</p>"),
+ ("Seus direitos", "<p>Como não coletamos nem guardamos seus dados pessoais, não há o que acessar, corrigir ou excluir do nosso lado. Se tiver qualquer dúvida ou pedido sobre privacidade (por exemplo, pela LGPD ou GDPR), fale conosco pela página de suporte abaixo.</p>"),
+ ("Alterações", "<p>Se esta política mudar, a nova versão será publicada neste endereço com uma nova data.</p>"),
+ ("Contato", f'<p>Suporte e dúvidas de privacidade: <a href="{ISSUES}">{ISSUES}</a></p>'),
+]),
+"fr": ("VORA — Politique de confidentialité", "VORA travaille sur votre téléphone. Cette politique explique simplement ce que cela signifie.", [
+ ("En bref", ul("Nous ne collectons pas vos données. Pas de compte, pas de connexion, pas d’analyse d’usage, pas de publicité, pas de suivi.", "Vos captures d’écran, photos, le texte qui en est lu et tout ce que VORA en déduit restent sur votre appareil.", "Nous n’avons aucun serveur qui reçoive votre contenu.")),
+ ("Ce que VORA traite sur votre appareil", "<p>Si vous autorisez l’accès à Photos, VORA lit vos captures d’écran (ou les photos que vous choisissez) <b>sur l’appareil</b> pour reconnaître textes, dates, montants et autres détails, et vous rappeler quand quelque chose redevient pertinent. L’app conserve : le texte reconnu, de petites vignettes, les détails extraits et — seulement pour les éléments que vous ajoutez ou décidez de garder — une copie de l’image. Des fonctions de langage facultatives sur l’appareil (Apple Intelligence) s’exécutent localement et seulement si votre appareil les prend en charge.</p>"),
+ ("Photos", "<p>VORA se contente de lire la photothèque. Il ne supprime une photo que si vous choisissez explicitement « Supprimer de Photos » ou « Supprimer de l’app et de Photos », et iOS vous demande de confirmer. Les photos supprimées restent 30 jours dans « Supprimés récemment », comme d’habitude sous iOS.</p>"),
+ ("Notifications et Face ID", "<p>Les rappels sont des notifications locales, créées seulement après votre accord et programmées sur votre téléphone. Le verrouillage facultatif utilise Face ID / votre code via iOS ; VORA ne reçoit ni ne conserve jamais de données biométriques.</p>"),
+ ("Liens que vous ajoutez", "<p>Si vous collez un lien, votre téléphone contacte directement ce site (via LinkPresentation d’Apple) pour récupérer son titre et son image. Le site peut voir votre adresse IP et des informations sur l’appareil comme lors de toute visite ; rien ne passe par nos serveurs. Quand vous touchez « Regarder » ou « Ouvrir le lien », la page s’ouvre dans Safari d’Apple à l’intérieur de l’app et les règles du site s’appliquent (y compris cookies et avis de consentement, auxquels vous répondez).</p>"),
+ ("Achats", "<p>Les abonnements sont traités par Apple. Nous ne recevons ni vos moyens de paiement, ni votre nom, ni votre compte Apple ; l’app apprend seulement, via StoreKit sur votre appareil, si un abonnement est actif.</p>"),
+ ("Sauvegardes", "<p>« Sauvegarder mes souvenirs » crée un fichier que vous enregistrez où vous voulez (par exemple iCloud Drive). VORA ne l’envoie nulle part. Le fichier n’est pas chiffré par VORA ; il est protégé par ce qui protège l’endroit où vous l’enregistrez. Comme pour d’autres apps, les données de l’app sur votre téléphone peuvent être incluses dans les sauvegardes iOS / iCloud de votre appareil selon vos réglages.</p>"),
+ ("Conservation et suppression", "<p>Vos données restent sur votre appareil jusqu’à ce que vous supprimiez un élément, choisissiez « Tout supprimer » dans Réglages ou désinstalliez l’app. Nous ne pouvons ni y accéder ni les supprimer à votre place, car nous ne les recevons jamais.</p>"),
+ ("Enfants", "<p>VORA ne s’adresse pas aux enfants et ne collecte sciemment aucune donnée personnelle.</p>"),
+ ("Vos droits", "<p>Comme nous ne collectons ni ne détenons vos données personnelles, il n’y a rien à consulter, corriger ou effacer de notre côté. Pour toute question ou demande sur la vie privée (par exemple au titre du RGPD), contactez-nous via la page d’assistance ci-dessous.</p>"),
+ ("Modifications", "<p>Si cette politique change, la nouvelle version sera publiée à cette adresse avec une nouvelle date.</p>"),
+ ("Contact", f'<p>Assistance et questions de confidentialité : <a href="{ISSUES}">{ISSUES}</a></p>'),
+]),
+"es": ("VORA — Política de privacidad", "VORA hace su trabajo en tu teléfono. Esta política explica, con palabras sencillas, lo que eso significa.", [
+ ("En resumen", ul("No recopilamos tus datos. No hay cuenta, inicio de sesión, analíticas, publicidad ni seguimiento.", "Tus capturas, fotos, el texto leído de ellas y todo lo que VORA deduce se quedan en tu dispositivo.", "No tenemos servidores que reciban tu contenido.")),
+ ("Qué procesa VORA en tu dispositivo", "<p>Cuando permites el acceso a Fotos, VORA lee tus capturas (o las fotos que elijas) <b>en el propio dispositivo</b> para reconocer textos, fechas, importes y otros detalles, y para recordarte cuando algo vuelve a ser relevante. Dentro de la app se guardan: el texto reconocido, miniaturas, los detalles extraídos y —solo para elementos que añades o decides conservar— una copia de la imagen. Las funciones de lenguaje opcionales en el dispositivo (Apple Intelligence) se ejecutan localmente y solo si tu dispositivo las admite.</p>"),
+ ("Fotos", "<p>VORA solo lee la fototeca. Solo elimina una foto cuando eliges explícitamente «Eliminar de Fotos» o «Eliminar de la app y de Fotos», e iOS te pide confirmación. Las fotos eliminadas permanecen 30 días en «Eliminados recientemente», como es habitual en iOS.</p>"),
+ ("Notificaciones y Face ID", "<p>Los recordatorios son notificaciones locales, creadas solo después de que los aceptes y programadas en tu teléfono. El bloqueo opcional usa Face ID / tu código a través de iOS; VORA nunca recibe ni guarda datos biométricos.</p>"),
+ ("Enlaces que añades", "<p>Si pegas un enlace, tu teléfono contacta directamente con ese sitio (mediante LinkPresentation de Apple) para obtener su título e imagen. El sitio puede ver tu dirección IP e información del dispositivo, como en cualquier visita; nada pasa por nuestros servidores. Al tocar «Ver» o «Abrir enlace», la página se abre en Safari de Apple dentro de la app y se aplican las políticas del propio sitio (incluidas cookies y avisos de consentimiento, que respondes tú).</p>"),
+ ("Compras", "<p>Las suscripciones las procesa Apple. No recibimos tus datos de pago, nombre ni cuenta de Apple; la app solo sabe, mediante StoreKit en tu dispositivo, si hay una suscripción activa.</p>"),
+ ("Copias de seguridad", "<p>«Hacer copia de mis recuerdos» crea un archivo que guardas donde quieras (por ejemplo iCloud Drive). VORA no lo envía a ningún sitio. VORA no cifra el archivo; lo protege lo que proteja el lugar donde lo guardes. Como otras apps, los datos de la app en tu teléfono pueden incluirse en las copias de iOS / iCloud de tu dispositivo según tus ajustes.</p>"),
+ ("Conservación y eliminación", "<p>Tus datos permanecen en tu dispositivo hasta que elimines un elemento, elijas «Eliminar todo» en Ajustes o desinstales la app. No podemos acceder a ellos ni eliminarlos por ti, porque nunca los recibimos.</p>"),
+ ("Menores", "<p>VORA no está dirigida a menores y no recopila a sabiendas datos personales de nadie.</p>"),
+ ("Tus derechos", "<p>Como no recopilamos ni conservamos tus datos personales, no hay nada que acceder, corregir o suprimir de nuestro lado. Si tienes preguntas o solicitudes sobre privacidad (por ejemplo bajo el RGPD), contáctanos a través de la página de soporte indicada abajo.</p>"),
+ ("Cambios", "<p>Si esta política cambia, la nueva versión se publicará en esta dirección con una nueva fecha.</p>"),
+ ("Contacto", f'<p>Soporte y consultas de privacidad: <a href="{ISSUES}">{ISSUES}</a></p>'),
+]),
+}
+
+TERMS = {
+"en": ("VORA — Terms of Use", "By downloading or using VORA you agree to these terms. If you do not agree, do not use the app.", [
+ ("1. The service", "<p>VORA is an app that helps you save things you might need later and brings them back when they become relevant. It works on your device. Apple’s Standard End User License Agreement (“Apple EULA”) also applies; where these terms and the Apple EULA conflict, the Apple EULA prevails for matters it covers.</p>"),
+ ("2. License", "<p>We grant you a personal, non-exclusive, non-transferable, revocable license to use VORA on Apple devices you own or control, according to the App Store rules. You may not copy, modify, reverse engineer or resell the app, except where the law allows it.</p>"),
+ ("3. Free trial and subscription", ul("VORA includes a <b>5-day free trial</b> starting the first time you open the app. When it ends, the app is locked until you subscribe.", "The subscription is <b>yearly and renews automatically</b> at the same price until you cancel. The price is shown in the app in your local currency before you confirm.", "Payment is charged to your Apple Account when you confirm. The subscription renews unless cancelled at least 24 hours before the end of the current period. You can manage or cancel it any time in Settings › your name › Subscriptions.", "Refunds are handled by Apple under its own rules (reportaproblem.apple.com).", "You can restore a previous subscription with “Restore purchase”.")),
+ ("4. Your content", "<p>Your screenshots, photos, links and everything you save remain yours. We do not receive them and claim no rights over them. You are responsible for having the right to save what you add.</p>"),
+ ("5. Automatic reading can be wrong", "<p>VORA reads text, dates and amounts automatically and may be wrong or miss things. <b>Do not rely on VORA as the only way to remember anything important</b> (payments, deadlines, flights, medical appointments). Reminders are conveniences, not guarantees.</p>"),
+ ("6. Acceptable use", "<p>Use VORA lawfully and only with content you are entitled to use. Do not try to interfere with the app, its purchases or Apple’s services.</p>"),
+ ("7. Third-party sites", "<p>Links you add and open lead to third-party websites that we do not control. Their content, terms and privacy practices are theirs.</p>"),
+ ("8. Disclaimer and liability", "<p>The app is provided “as is” and “as available”, without warranties of any kind to the extent allowed by law. To the extent allowed by law, we are not liable for indirect or consequential losses, lost data, missed reminders or missed deadlines. Keep your own backups. Nothing here limits rights that the law of your country gives you as a consumer and that cannot be waived.</p>"),
+ ("9. Changes and termination", "<p>We may update the app and these terms; the current version is always at this address. You may stop using VORA at any time by cancelling the subscription and deleting the app.</p>"),
+ ("10. Contact", f'<p>Questions: <a href="{ISSUES}">{ISSUES}</a></p>'),
+]),
+"pt": ("VORA — Termos de Uso", "Ao baixar ou usar o VORA, você concorda com estes termos. Se não concordar, não use o app.", [
+ ("1. O serviço", "<p>O VORA é um app que ajuda você a guardar o que pode precisar depois e faz isso voltar quando se torna relevante. Ele funciona no seu aparelho. O Contrato de Licença de Usuário Final Padrão da Apple (“EULA da Apple”) também se aplica; havendo conflito entre estes termos e o EULA da Apple, vale o EULA da Apple nos assuntos que ele cobre.</p>"),
+ ("2. Licença", "<p>Concedemos a você uma licença pessoal, não exclusiva, intransferível e revogável para usar o VORA em aparelhos Apple que você possui ou controla, conforme as regras da App Store. Você não pode copiar, modificar, fazer engenharia reversa nem revender o app, exceto quando a lei permitir.</p>"),
+ ("3. Teste grátis e assinatura", ul("O VORA inclui um <b>teste grátis de 5 dias</b> a partir da primeira vez que você abre o app. Quando termina, o app fica bloqueado até você assinar.", "A assinatura é <b>anual e renova automaticamente</b> pelo mesmo preço até você cancelar. O preço aparece no app, na sua moeda, antes de você confirmar.", "O pagamento é cobrado na sua Conta Apple na confirmação. A assinatura renova, a menos que seja cancelada pelo menos 24 horas antes do fim do período atual. Você pode gerenciar ou cancelar a qualquer momento em Ajustes › seu nome › Assinaturas.", "Reembolsos são tratados pela Apple, conforme as regras dela (reportaproblem.apple.com).", "Você pode restaurar uma assinatura anterior em “Restaurar compra”.")),
+ ("4. Seu conteúdo", "<p>Seus screenshots, fotos, links e tudo o que você salva continuam sendo seus. Nós não os recebemos e não reivindicamos direitos sobre eles. Você é responsável por ter o direito de guardar o que adiciona.</p>"),
+ ("5. A leitura automática pode errar", "<p>O VORA lê textos, datas e valores automaticamente e pode errar ou deixar passar coisas. <b>Não dependa do VORA como única forma de lembrar algo importante</b> (pagamentos, prazos, voos, consultas médicas). Lembretes são facilidades, não garantias.</p>"),
+ ("6. Uso aceitável", "<p>Use o VORA de forma legal e apenas com conteúdo que você tem direito de usar. Não tente interferir no app, nas compras ou nos serviços da Apple.</p>"),
+ ("7. Sites de terceiros", "<p>Os links que você adiciona e abre levam a sites de terceiros que não controlamos. O conteúdo, os termos e as práticas de privacidade são deles.</p>"),
+ ("8. Isenções e responsabilidade", "<p>O app é fornecido “como está” e “conforme disponível”, sem garantias de qualquer tipo na medida permitida pela lei. Na medida permitida pela lei, não respondemos por perdas indiretas ou consequentes, perda de dados, lembretes não recebidos ou prazos perdidos. Mantenha seus próprios backups. Nada aqui limita direitos que a lei do seu país dá a você como consumidor e que não podem ser renunciados.</p>"),
+ ("9. Alterações e encerramento", "<p>Podemos atualizar o app e estes termos; a versão atual está sempre neste endereço. Você pode deixar de usar o VORA a qualquer momento cancelando a assinatura e apagando o app.</p>"),
+ ("10. Contato", f'<p>Dúvidas: <a href="{ISSUES}">{ISSUES}</a></p>'),
+]),
+"fr": ("VORA — Conditions d’utilisation", "En téléchargeant ou en utilisant VORA, vous acceptez ces conditions. Si vous n’êtes pas d’accord, n’utilisez pas l’app.", [
+ ("1. Le service", "<p>VORA est une app qui vous aide à garder ce dont vous pourriez avoir besoin plus tard et le fait revenir quand cela devient pertinent. Elle fonctionne sur votre appareil. Le contrat de licence d’utilisateur final standard d’Apple (« EULA d’Apple ») s’applique aussi ; en cas de conflit, l’EULA d’Apple prévaut pour les sujets qu’il couvre.</p>"),
+ ("2. Licence", "<p>Nous vous accordons une licence personnelle, non exclusive, non transférable et révocable pour utiliser VORA sur les appareils Apple que vous possédez ou contrôlez, selon les règles de l’App Store. Vous ne pouvez ni copier, ni modifier, ni décompiler, ni revendre l’app, sauf si la loi le permet.</p>"),
+ ("3. Essai gratuit et abonnement", ul("VORA comprend un <b>essai gratuit de 5 jours</b> à partir de la première ouverture de l’app. À la fin, l’app est verrouillée jusqu’à votre abonnement.", "L’abonnement est <b>annuel et se renouvelle automatiquement</b> au même prix jusqu’à résiliation. Le prix est affiché dans l’app, dans votre devise, avant confirmation.", "Le paiement est débité sur votre compte Apple à la confirmation. L’abonnement se renouvelle sauf résiliation au moins 24 heures avant la fin de la période en cours. Vous pouvez le gérer ou le résilier à tout moment dans Réglages › votre nom › Abonnements.", "Les remboursements sont gérés par Apple selon ses règles (reportaproblem.apple.com).", "Vous pouvez restaurer un abonnement existant avec « Restaurer l’achat ».")),
+ ("4. Votre contenu", "<p>Vos captures, photos, liens et tout ce que vous enregistrez restent à vous. Nous ne les recevons pas et ne revendiquons aucun droit dessus. Vous devez avoir le droit d’enregistrer ce que vous ajoutez.</p>"),
+ ("5. La lecture automatique peut se tromper", "<p>VORA lit automatiquement textes, dates et montants et peut se tromper ou manquer des éléments. <b>Ne vous fiez pas à VORA comme seul moyen de vous rappeler quelque chose d’important</b> (paiements, échéances, vols, rendez-vous médicaux). Les rappels sont des facilités, pas des garanties.</p>"),
+ ("6. Usage acceptable", "<p>Utilisez VORA légalement et uniquement avec du contenu que vous avez le droit d’utiliser. N’essayez pas d’entraver l’app, ses achats ou les services d’Apple.</p>"),
+ ("7. Sites tiers", "<p>Les liens que vous ajoutez et ouvrez mènent à des sites tiers que nous ne contrôlons pas. Leur contenu, leurs conditions et leurs pratiques de confidentialité leur appartiennent.</p>"),
+ ("8. Exclusions et responsabilité", "<p>L’app est fournie « en l’état » et « selon disponibilité », sans garantie d’aucune sorte dans la mesure permise par la loi. Dans cette mesure, nous ne sommes pas responsables des pertes indirectes ou consécutives, de la perte de données, de rappels manqués ou d’échéances ratées. Gardez vos propres sauvegardes. Rien ici ne limite les droits que la loi de votre pays vous accorde en tant que consommateur et auxquels on ne peut renoncer.</p>"),
+ ("9. Modifications et fin", "<p>Nous pouvons mettre à jour l’app et ces conditions ; la version en vigueur est toujours à cette adresse. Vous pouvez cesser d’utiliser VORA à tout moment en résiliant l’abonnement et en supprimant l’app.</p>"),
+ ("10. Contact", f'<p>Questions : <a href="{ISSUES}">{ISSUES}</a></p>'),
+]),
+"es": ("VORA — Términos de uso", "Al descargar o usar VORA aceptas estos términos. Si no estás de acuerdo, no uses la app.", [
+ ("1. El servicio", "<p>VORA es una app que te ayuda a guardar lo que podrías necesitar más adelante y lo hace volver cuando se vuelve relevante. Funciona en tu dispositivo. También se aplica el Contrato de licencia de usuario final estándar de Apple («EULA de Apple»); si hay conflicto, prevalece el EULA de Apple en lo que cubre.</p>"),
+ ("2. Licencia", "<p>Te concedemos una licencia personal, no exclusiva, intransferible y revocable para usar VORA en dispositivos Apple que poseas o controles, según las reglas de la App Store. No puedes copiar, modificar, aplicar ingeniería inversa ni revender la app, salvo que la ley lo permita.</p>"),
+ ("3. Prueba gratuita y suscripción", ul("VORA incluye una <b>prueba gratuita de 5 días</b> desde la primera vez que abres la app. Al terminar, la app queda bloqueada hasta que te suscribas.", "La suscripción es <b>anual y se renueva automáticamente</b> al mismo precio hasta que la canceles. El precio se muestra en la app, en tu moneda, antes de confirmar.", "El pago se carga a tu cuenta de Apple al confirmar. La suscripción se renueva salvo que se cancele al menos 24 horas antes del final del periodo actual. Puedes gestionarla o cancelarla en cualquier momento en Ajustes › tu nombre › Suscripciones.", "Los reembolsos los gestiona Apple según sus reglas (reportaproblem.apple.com).", "Puedes restaurar una suscripción anterior con «Restaurar compra».")),
+ ("4. Tu contenido", "<p>Tus capturas, fotos, enlaces y todo lo que guardas siguen siendo tuyos. No los recibimos ni reclamamos derechos sobre ellos. Eres responsable de tener derecho a guardar lo que añades.</p>"),
+ ("5. La lectura automática puede fallar", "<p>VORA lee textos, fechas e importes automáticamente y puede equivocarse o pasar cosas por alto. <b>No dependas de VORA como único medio para recordar algo importante</b> (pagos, plazos, vuelos, citas médicas). Los recordatorios son comodidades, no garantías.</p>"),
+ ("6. Uso aceptable", "<p>Usa VORA de forma legal y solo con contenido que tengas derecho a usar. No intentes interferir con la app, sus compras ni los servicios de Apple.</p>"),
+ ("7. Sitios de terceros", "<p>Los enlaces que añades y abres llevan a sitios de terceros que no controlamos. Su contenido, términos y prácticas de privacidad son suyos.</p>"),
+ ("8. Exclusiones y responsabilidad", "<p>La app se ofrece «tal cual» y «según disponibilidad», sin garantías de ningún tipo en la medida permitida por la ley. En esa medida, no respondemos de pérdidas indirectas o consecuentes, pérdida de datos, recordatorios no recibidos o plazos incumplidos. Mantén tus propias copias de seguridad. Nada de esto limita los derechos que la ley de tu país te da como consumidor y a los que no se puede renunciar.</p>"),
+ ("9. Cambios y terminación", "<p>Podemos actualizar la app y estos términos; la versión vigente está siempre en esta dirección. Puedes dejar de usar VORA en cualquier momento cancelando la suscripción y eliminando la app.</p>"),
+ ("10. Contacto", f'<p>Preguntas: <a href="{ISSUES}">{ISSUES}</a></p>'),
+]),
+}
+
+SUPPORT = {
+"en": ("VORA — Support", "Help and contact", f'<p>Questions, problems or privacy requests: open an issue at <a href="{ISSUES}">{ISSUES}</a> (public) and describe what happened, your iPhone model and iOS version. Please do not post personal information or screenshots with private content.</p>', "Terms of Use", "Privacy Policy"),
+"pt": ("VORA — Suporte", "Ajuda e contato", f'<p>Dúvidas, problemas ou pedidos de privacidade: abra uma solicitação em <a href="{ISSUES}">{ISSUES}</a> (pública) e descreva o que aconteceu, o modelo do iPhone e a versão do iOS. Não publique informações pessoais nem screenshots com conteúdo privado.</p>', "Termos de Uso", "Política de Privacidade"),
+"fr": ("VORA — Assistance", "Aide et contact", f'<p>Questions, problèmes ou demandes de confidentialité : ouvrez un ticket sur <a href="{ISSUES}">{ISSUES}</a> (public) en décrivant ce qui s’est passé, le modèle d’iPhone et la version d’iOS. Ne publiez pas d’informations personnelles ni de captures au contenu privé.</p>', "Conditions d’utilisation", "Politique de confidentialité"),
+"es": ("VORA — Soporte", "Ayuda y contacto", f'<p>Preguntas, problemas o solicitudes de privacidad: abre una incidencia en <a href="{ISSUES}">{ISSUES}</a> (pública) y describe lo ocurrido, el modelo de iPhone y la versión de iOS. No publiques información personal ni capturas con contenido privado.</p>', "Términos de uso", "Política de privacidad"),
+}
+
+def write(path, text):
+    p = pathlib.Path(path); p.parent.mkdir(parents=True, exist_ok=True); p.write_text(text, encoding="utf-8")
+
+for kind, data in (("privacy", PRIVACY), ("terms", TERMS)):
+    for lang, (title, intro, items) in data.items():
+        nav = [(l, n, f"{l}.html") for l, n in LANGS.items()]
+        body = f'<h1>{html.escape(title)}</h1><p class="mut">{UPDATED[lang]}</p><p>{html.escape(intro)}</p>{sections(items)}'
+        write(f"{kind}/{lang}.html", page(title, lang, body, nav))
+
+for lang, (title, sub, body, terms_label, priv_label) in SUPPORT.items():
+    nav = [(l, n, f"{'index' if l=='en' else 'support-'+l}.html") for l, n in LANGS.items()]
+    links = f'<div class="card"><p><a href="terms/{lang}.html">{html.escape(terms_label)}</a></p><p><a href="privacy/{lang}.html">{html.escape(priv_label)}</a></p></div>'
+    write("index.html" if lang == "en" else f"support-{lang}.html", page(title, lang, f'<h1>{html.escape(title)}</h1><p class="mut">{html.escape(sub)}</p>{body}{links}', nav))
+print("ok")
