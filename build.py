@@ -16,6 +16,16 @@ main{max-width:720px;margin:0 auto;padding:32px 20px 64px}h1{font-size:2rem;line
 p,li{color:var(--fg)}.mut{color:var(--mut);font-size:.9rem}a{color:var(--acc)}nav{display:flex;gap:12px;flex-wrap:wrap;margin:8px 0 24px}
 nav a{padding:6px 12px;border-radius:999px;background:var(--card);text-decoration:none;font-size:.9rem}nav a.on{outline:2px solid var(--acc)}
 .card{background:var(--card);border-radius:18px;padding:18px 20px;margin:12px 0}ul{padding-left:1.2em}
+
+.slides{display:flex;gap:16px;overflow-x:auto;scroll-snap-type:x mandatory;padding:6px 2px 14px;margin:8px -20px 0;padding-left:20px;padding-right:20px;scrollbar-width:thin}
+.slide{flex:0 0 min(260px,72vw);scroll-snap-align:center;background:var(--card);border-radius:22px;padding:14px 14px 16px}
+.slide img,.fig img{display:block;width:100%;height:auto;border-radius:16px;border:1px solid rgba(143,166,255,.25)}
+.slide b{display:block;margin:12px 0 2px;font-size:1rem}.slide span{color:var(--mut);font-size:.88rem;line-height:1.4;display:block}
+.step{display:inline-block;min-width:24px;height:24px;line-height:24px;text-align:center;border-radius:12px;background:var(--acc);color:#fff;font-size:.8rem;font-weight:700;margin-right:6px}
+.ctrl{display:flex;gap:10px;align-items:center;justify-content:center;margin:4px 0 8px}
+.ctrl button{border:0;border-radius:999px;background:var(--card);color:var(--fg);width:40px;height:40px;font-size:1.2rem;cursor:pointer}
+.dots{display:flex;gap:6px}.dots i{width:8px;height:8px;border-radius:4px;background:var(--mut);opacity:.4}.dots i.on{opacity:1;background:var(--acc)}
+.fig{max-width:240px;margin:12px 0}
 """
 
 def page(title, lang, body, nav_links):
@@ -208,13 +218,43 @@ GUIDE = {
 ]),
 }
 
+SLIDES = {
+"en": [("1-now","What matters again","Only what became relevant now, with the reason in plain words."),("2-search","Search like you remember","“That Japanese restaurant” is enough. No exact words."),("3-detail","Why it came back","The details VORA found and a Remind button when it is sure."),("4-library","Your Library","Everything you saved. Swipe left to delete; switch list/grid."),("5-add","Add anything (+)","Photos, screenshots or a link with its picture."),("6-settings","Settings","Face ID lock, backup, terms, delete everything."),("7-paywall","5 days free, then yearly","The price is shown before you confirm. Restore purchase is here.")],
+"pt": [("1-now","O que voltou a importar","Só o que ficou relevante agora, com o motivo em palavras simples."),("2-search","Busque como você lembra","“Aquele restaurante japonês” basta. Sem palavras exatas."),("3-detail","Por que voltou","Os detalhes que o VORA achou e o botão Lembrar quando ele tem certeza."),("4-library","Sua Biblioteca","Tudo o que você salvou. Deslize para a esquerda para apagar; lista ou grade."),("5-add","Adicione qualquer coisa (+)","Fotos, screenshots ou um link com a imagem dele."),("6-settings","Ajustes","Bloqueio com Face ID, backup, termos, excluir tudo."),("7-paywall","5 dias grátis, depois anual","O preço aparece antes de você confirmar. Restaurar compra fica aqui.")],
+"fr": [("1-now","Ce qui compte à nouveau","Seulement ce qui est devenu pertinent, avec la raison en mots simples."),("2-search","Cherchez comme vous vous souvenez","« Ce restaurant japonais » suffit. Pas de mots exacts."),("3-detail","Pourquoi il est revenu","Les détails trouvés par VORA et un bouton Rappeler quand il est sûr."),("4-library","Votre Bibliothèque","Tout ce que vous avez enregistré. Glissez à gauche pour supprimer ; liste ou grille."),("5-add","Ajoutez tout (+)","Photos, captures ou un lien avec son image."),("6-settings","Réglages","Verrouillage Face ID, sauvegarde, conditions, tout supprimer."),("7-paywall","5 jours gratuits, puis annuel","Le prix s’affiche avant confirmation. Restaurer l’achat est ici.")],
+"es": [("1-now","Lo que vuelve a importar","Solo lo que se volvió relevante, con el motivo en palabras sencillas."),("2-search","Busca como recuerdas","«Aquel restaurante japonés» basta. Sin palabras exactas."),("3-detail","Por qué volvió","Los detalles que VORA encontró y un botón Recordar cuando está seguro."),("4-library","Tu Biblioteca","Todo lo que guardaste. Desliza a la izquierda para eliminar; lista o cuadrícula."),("5-add","Añade lo que quieras (+)","Fotos, capturas o un enlace con su imagen."),("6-settings","Ajustes","Bloqueo con Face ID, copia de seguridad, términos, eliminar todo."),("7-paywall","5 días gratis, luego anual","El precio se muestra antes de confirmar. Restaurar compra está aquí.")],
+}
+FIG_FOR_SECTION = {2: "1-now", 3: "2-search", 4: "4-library", 5: "5-add", 6: "3-detail", 9: "6-settings", 10: "7-paywall"}
+CAROUSEL_JS = """<script>(function(){var s=document.querySelector('.slides');if(!s)return;var d=document.querySelectorAll('.dots i'),n=s.children.length;
+function w(){return s.children[0].getBoundingClientRect().width+16}
+function idx(){return Math.max(0,Math.min(n-1,Math.round(s.scrollLeft/w())))}
+function mark(){var i=idx();d.forEach(function(e,k){e.className=k===i?'on':''})}
+s.addEventListener('scroll',mark,{passive:true});
+document.getElementById('prev').onclick=function(){s.scrollBy({left:-w(),behavior:'smooth'})};
+document.getElementById('next').onclick=function(){s.scrollBy({left:w(),behavior:'smooth'})};mark()})();</script>"""
+
+def carousel(lang):
+    cards = "".join(f'<div class="slide"><img src="../assets/guide/{lang}/{img}.jpg" alt="{html.escape(t)}" loading="lazy"><b><span class="step" style="display:inline-block;color:#fff">{i+1}</span>{html.escape(t)}</b><span>{html.escape(x)}</span></div>' for i, (img, t, x) in enumerate(SLIDES[lang]))
+    dots = "".join("<i></i>" for _ in SLIDES[lang])
+    return f'<div class="slides">{cards}</div><div class="ctrl"><button id="prev" aria-label="←">‹</button><div class="dots">{dots}</div><button id="next" aria-label="→">›</button></div>'
+
+def guide_sections(lang, items):
+    out = ""
+    for i, (h, b) in enumerate(items):
+        fig = f'<div class="fig"><img src="../assets/guide/{lang}/{FIG_FOR_SECTION[i]}.jpg" alt="{html.escape(h)}" loading="lazy"></div>' if i in FIG_FOR_SECTION else ""
+        out += f"<h2>{html.escape(h)}</h2>{b}{fig}"
+    return out
+
 def write(path, text):
     p = pathlib.Path(path); p.parent.mkdir(parents=True, exist_ok=True); p.write_text(text, encoding="utf-8")
 
 for kind, data in (("privacy", PRIVACY), ("terms", TERMS), ("guide", GUIDE)):
     for lang, (title, intro, items) in data.items():
         nav = [(l, n, f"{l}.html") for l, n in LANGS.items()]
-        body = f'<h1>{html.escape(title)}</h1><p class="mut">{UPDATED[lang]}</p><p>{html.escape(intro)}</p>{sections(items)}'
+        if kind == "guide":
+            body = f'<h1>{html.escape(title)}</h1><p>{html.escape(intro)}</p>{carousel(lang)}{guide_sections(lang, items)}{CAROUSEL_JS}'
+        else:
+            body = f'<h1>{html.escape(title)}</h1><p class="mut">{UPDATED[lang]}</p><p>{html.escape(intro)}</p>{sections(items)}'
         write(f"{kind}/{lang}.html", page(title, lang, body, nav))
 
 for lang, (title, sub, body, terms_label, priv_label) in SUPPORT.items():
